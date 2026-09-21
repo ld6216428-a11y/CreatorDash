@@ -214,17 +214,11 @@ a{color:inherit}
 <div id="toast" class="toast hidden"></div>
 
 <!-- Firebase Authentication + Firestore -->
-<script type="module">
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js";
-import {
-  getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword,
-  signOut, onAuthStateChanged, sendPasswordResetEmail, updateProfile,
-  sendEmailVerification
-} from "https://www.gstatic.com/firebasejs/10.14.1/firebase-auth.js";
-import {
-  getFirestore, doc, getDoc, setDoc, updateDoc, serverTimestamp
-} from "https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js";
-
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
+<script>
+/* Firebase: classic/compat SDK so GitHub Pages does not depend on ES-module timing. */
 const firebaseConfig = {
   apiKey: "AIzaSyD0OYvE-uqhWQYfUmLC0ue9nE1Nxbh_FO4",
   authDomain: "creatordash-3efb4.firebaseapp.com",
@@ -235,35 +229,33 @@ const firebaseConfig = {
   measurementId: "G-BEYNXVT85R"
 };
 
-const configured = !Object.values(firebaseConfig).some(v => String(v).startsWith("PASTE_"));
-let auth=null, firestore=null;
-
-if(configured){
-  try{
-    const app=initializeApp(firebaseConfig);
-    auth=getAuth(app);
-    firestore=getFirestore(app);
-  }catch(e){
-    console.error(e);
+let auth = null, firestore = null;
+try {
+  if (window.firebase) {
+    if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
+    auth = firebase.auth();
+    firestore = firebase.firestore();
   }
+} catch (e) {
+  console.error("CreatorDash Firebase initialization failed:", e);
 }
 
 window.CD = {
-  configured: !!(configured && auth && firestore),
+  configured: !!(window.firebase && auth && firestore),
   auth,
   firestore,
-  createUserWithEmailAndPassword,
-  signInWithEmailAndPassword,
-  signOut,
-  onAuthStateChanged,
-  sendPasswordResetEmail,
-  updateProfile,
-  sendEmailVerification,
-  getDoc,
-  setDoc,
-  updateDoc,
-  doc,
-  serverTimestamp
+  createUserWithEmailAndPassword: (a,email,password) => a.createUserWithEmailAndPassword(email,password),
+  signInWithEmailAndPassword: (a,email,password) => a.signInWithEmailAndPassword(email,password),
+  signOut: (a) => a.signOut(),
+  onAuthStateChanged: (a,callback) => a.onAuthStateChanged(callback),
+  sendPasswordResetEmail: (a,email) => a.sendPasswordResetEmail(email),
+  updateProfile: (user,data) => user.updateProfile(data),
+  sendEmailVerification: (user) => user.sendEmailVerification(),
+  getDoc: (ref) => ref.get(),
+  setDoc: (ref,data,options) => ref.set(data, options || {}),
+  updateDoc: (ref,data) => ref.update(data),
+  doc: (db,collection,id) => db.collection(collection).doc(id),
+  serverTimestamp: () => firebase.firestore.FieldValue.serverTimestamp()
 };
 </script>
 
@@ -1037,10 +1029,8 @@ function startCreatorDashAuth(){
   state.firebaseReady=!!window.CD?.configured;
 
   if(!window.CD?.configured || !window.CD?.auth || !window.CD?.onAuthStateChanged){
-    console.error("CreatorDash Firebase Authentication is not available.");
-    $("app").classList.add("hidden");
-    $("authScreen").classList.remove("hidden");
-    authError("loginError","Secure sign-in is unavailable. Please open the published HTTPS version of CreatorDash and make sure Firebase Email/Password is enabled.");
+    console.error("CreatorDash Firebase Authentication is not available.", window.firebase ? "Firebase loaded but initialization failed." : "Firebase SDK did not load.");
+    state.firebaseReady=false;
     return;
   }
 
@@ -1048,7 +1038,6 @@ function startCreatorDashAuth(){
 
   window.CD.onAuthStateChanged(window.CD.auth,async user=>{
     console.log("CreatorDash auth state:",user?user.email:"signed out");
-
     if(user){
       await loadUser(user.uid,user);
     }else{
@@ -1060,7 +1049,11 @@ function startCreatorDashAuth(){
   });
 }
 
-startCreatorDashAuth();
+if (document.readyState === "loading") {
+  document.addEventListener("DOMContentLoaded", startCreatorDashAuth, { once: true });
+} else {
+  startCreatorDashAuth();
+}
 
 </script>
 </body>
