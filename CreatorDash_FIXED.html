@@ -1,0 +1,1067 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#08070b">
+<title>CreatorDash — Creator Business OS</title>
+<style>
+:root{
+  --bg:#07060a;--bg2:#0d0b12;--panel:#111019;--panel2:#171421;--panel3:#1c1728;
+  --line:#292333;--text:#f7f4fb;--muted:#a9a2b6;--purple:#8b5cf6;--purple2:#6d28d9;
+  --purple3:#a78bfa;--green:#31d48c;--red:#ff6b7a;--yellow:#f5c451;--blue:#60a5fa;
+  --shadow:0 18px 50px rgba(0,0,0,.28);--radius:16px;
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;background:radial-gradient(circle at 15% 0%,#171024 0,#08070b 38%,#07060a 100%);color:var(--text);font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
+button,input,select,textarea{font:inherit}
+button{cursor:pointer}
+button:disabled{opacity:.5;cursor:not-allowed}
+a{color:inherit}
+.hidden{display:none!important}
+.app{min-height:100vh}
+.sidebar{position:fixed;z-index:30;left:0;top:0;bottom:0;width:272px;background:rgba(9,8,13,.96);border-right:1px solid var(--line);padding:20px 14px;overflow:auto;backdrop-filter:blur(18px)}
+.brand{padding:3px 10px 20px;font-size:23px;font-weight:900;letter-spacing:-.03em}
+.brand span{color:var(--purple3)}
+.brand small{display:block;color:var(--muted);font-size:10px;font-weight:600;letter-spacing:.08em;margin-top:5px;text-transform:uppercase}
+.nav-title{font-size:10px;text-transform:uppercase;letter-spacing:.12em;color:#6f687d;padding:12px 10px 7px}
+.nav{display:grid;gap:4px}
+.nav button{width:100%;border:1px solid transparent;background:transparent;color:var(--muted);text-align:left;padding:10px 11px;border-radius:10px;display:flex;gap:10px;align-items:center}
+.nav button:hover{background:#16121e;color:#fff}
+.nav button.active{background:linear-gradient(90deg,#211735,#181321);border-color:#33254b;color:#fff}
+.nav .icon{width:20px;text-align:center}
+.sidebar-bottom{margin-top:18px;border-top:1px solid var(--line);padding-top:12px}
+.user-mini{padding:10px;border:1px solid var(--line);background:#100e15;border-radius:12px}
+.user-mini b{display:block;font-size:13px}
+.user-mini span{display:block;color:var(--muted);font-size:11px;margin-top:3px;overflow:hidden;text-overflow:ellipsis}
+.main{margin-left:272px;min-height:100vh;padding:26px;max-width:1600px}
+.topbar{display:flex;justify-content:space-between;gap:18px;align-items:flex-start;margin-bottom:22px}
+.eyebrow{font-size:11px;color:var(--purple3);font-weight:800;text-transform:uppercase;letter-spacing:.12em}
+.page-title{font-size:32px;font-weight:900;letter-spacing:-.04em;margin:4px 0}
+.subtitle{font-size:14px;color:var(--muted);line-height:1.5}
+.actions{display:flex;gap:8px;flex-wrap:wrap}
+.btn{border:1px solid var(--line);background:var(--panel2);color:#fff;padding:9px 13px;border-radius:10px;transition:.15s}
+.btn:hover{transform:translateY(-1px);border-color:#4b3b64}
+.btn.primary{background:linear-gradient(135deg,var(--purple2),#7c3aed);border-color:#7c3aed}
+.btn.ghost{background:transparent}
+.btn.danger{color:#ff9aa5}
+.btn.success{color:#8ff0c3}
+.btn.small{padding:7px 10px;font-size:12px}
+.grid{display:grid;grid-template-columns:repeat(12,minmax(0,1fr));gap:14px}
+.card{background:rgba(17,16,25,.93);border:1px solid var(--line);border-radius:var(--radius);padding:17px;box-shadow:0 7px 30px rgba(0,0,0,.1)}
+.card h2,.card h3{margin:0 0 8px}
+.card h3{font-size:16px}
+.span2{grid-column:span 2}.span3{grid-column:span 3}.span4{grid-column:span 4}.span5{grid-column:span 5}.span6{grid-column:span 6}.span7{grid-column:span 7}.span8{grid-column:span 8}.span9{grid-column:span 9}.span12{grid-column:span 12}
+.metric-label{font-size:12px;color:var(--muted)}
+.metric{font-size:27px;font-weight:900;margin-top:4px;letter-spacing:-.03em}
+.metric-note{font-size:11px;color:var(--muted);margin-top:5px}
+.section{display:none}.section.active{display:block}
+.formgrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:11px}
+.field label{display:block;color:#b9b2c5;font-size:11px;font-weight:700;margin:0 0 6px}
+.field input,.field select,.field textarea{width:100%;background:#0a090e;border:1px solid #2a2533;color:#fff;padding:10px 11px;border-radius:10px;outline:none}
+.field input:focus,.field select:focus,.field textarea:focus{border-color:#7250a5;box-shadow:0 0 0 3px rgba(139,92,246,.1)}
+.field textarea{min-height:100px;resize:vertical}
+.full{grid-column:1/-1}
+.list{display:grid;gap:8px;margin-top:12px}
+.row{display:flex;justify-content:space-between;gap:12px;align-items:center;background:#0c0b11;border:1px solid #211e29;border-radius:11px;padding:11px}
+.row-main{min-width:0}.row-main b{font-size:13px}.row-main small{display:block;color:var(--muted);font-size:11px;margin-top:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:700px}
+.row-actions{display:flex;gap:6px;flex-shrink:0}
+.empty{padding:25px;text-align:center;color:var(--muted);border:1px dashed #332d3d;border-radius:11px}
+.tag{display:inline-flex;align-items:center;padding:4px 8px;border-radius:999px;background:#211936;color:#cbb7ff;font-size:10px;font-weight:700}
+.status-good{color:var(--green)}.status-warn{color:var(--yellow)}.status-bad{color:var(--red)}
+.analysis{background:linear-gradient(135deg,#171125,#100d16);border-color:#3b2b59}
+.insight{padding:12px;border-radius:11px;background:#0c0b11;margin-top:8px;border-left:3px solid var(--purple)}
+.insight.good{border-left-color:var(--green)}.insight.warn{border-left-color:var(--yellow)}.insight.bad{border-left-color:var(--red)}
+.progress{height:7px;background:#25202f;border-radius:99px;overflow:hidden;margin-top:8px}.progress i{display:block;height:100%;background:linear-gradient(90deg,#6d28d9,#a78bfa);border-radius:99px}
+.kpi-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
+.quick-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.quick{padding:13px;background:#0c0b11;border:1px solid #24202d;border-radius:12px;text-align:left;color:#fff}
+.quick b{display:block;margin-bottom:4px}.quick span{font-size:11px;color:var(--muted)}
+.toolbar{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:13px}
+.toolbar .field{min-width:160px}
+.divider{height:1px;background:var(--line);margin:15px 0}
+.notice{padding:11px 13px;border-radius:10px;background:#171320;border:1px solid #322742;color:#d9d1e5;font-size:12px;line-height:1.5}
+.table-wrap{overflow:auto}.table{width:100%;border-collapse:collapse;min-width:650px}.table th,.table td{padding:10px;border-bottom:1px solid #25212d;text-align:left;font-size:12px}.table th{color:var(--muted);font-size:10px;text-transform:uppercase;letter-spacing:.07em}
+.modal{position:fixed;inset:0;background:rgba(0,0,0,.72);z-index:100;display:grid;place-items:center;padding:18px}.modal-box{width:min(620px,96vw);max-height:90vh;overflow:auto;background:#111019;border:1px solid #3a3049;border-radius:18px;padding:20px;box-shadow:var(--shadow)}
+.modal-head{display:flex;justify-content:space-between;align-items:center;gap:10px}.modal-head h3{margin:0}
+.toast{position:fixed;right:18px;bottom:18px;z-index:200;background:#18131f;border:1px solid #44345a;color:#fff;padding:11px 14px;border-radius:11px;box-shadow:var(--shadow);font-size:12px}
+.auth{position:fixed;inset:0;z-index:90;background:radial-gradient(circle at 50% 20%,#201333 0,#08070b 45%);display:grid;place-items:center;padding:18px}
+.auth-shell{width:min(980px,96vw);display:grid;grid-template-columns:1.1fr .9fr;background:rgba(15,13,20,.96);border:1px solid #342b40;border-radius:24px;overflow:hidden;box-shadow:var(--shadow)}
+.auth-brand{padding:42px;background:linear-gradient(145deg,#1b122b,#0e0c13);display:flex;flex-direction:column;justify-content:center}
+.auth-brand h1{font-size:46px;line-height:1;margin:12px 0}.auth-brand h1 span{color:var(--purple3)}
+.auth-brand .big-slogan{font-size:20px;font-weight:800;margin:0 0 10px}.auth-brand p{color:var(--muted);line-height:1.65;max-width:480px}
+.auth-points{display:grid;gap:9px;margin-top:20px}.auth-point{font-size:12px;color:#d6d0df}.auth-point b{color:#fff}
+.auth-box{padding:34px;background:#111019}.auth-tabs{display:flex;background:#0b0a10;border:1px solid var(--line);border-radius:11px;padding:4px;margin-bottom:20px}.auth-tabs button{flex:1;border:0;background:transparent;color:var(--muted);padding:9px;border-radius:8px}.auth-tabs button.active{background:#211832;color:#fff}
+.auth-form{display:grid;gap:12px}.auth-error{min-height:18px;color:#ff8e9b;font-size:12px}.auth-foot{font-size:11px;color:#716b79;line-height:1.5;margin-top:15px}
+.mobile-nav{display:none}
+.calendar{display:grid;grid-template-columns:repeat(7,1fr);border:1px solid var(--line);border-radius:12px;overflow:hidden}.cal-head,.cal-day{border-right:1px solid var(--line);border-bottom:1px solid var(--line);min-height:85px;padding:7px}.cal-head{min-height:auto;background:#0c0b11;color:var(--muted);font-size:10px;font-weight:800;text-transform:uppercase}.cal-day:nth-child(7n){border-right:0}.cal-num{font-size:11px;color:#d4cedd}.cal-event{margin-top:4px;padding:3px 5px;border-radius:5px;background:#251b3a;color:#d9caff;font-size:9px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.onboarding{border:1px solid #3b2b59;background:linear-gradient(135deg,#171125,#0f0c15)}
+.onboarding h2{font-size:20px}
+.step{display:flex;gap:10px;align-items:flex-start}.step-num{width:24px;height:24px;border-radius:50%;background:#251b3a;color:#cdb9ff;display:grid;place-items:center;font-size:11px;font-weight:800;flex-shrink:0}
+.profile-card{display:flex;align-items:center;gap:13px}.avatar{width:46px;height:46px;border-radius:50%;background:linear-gradient(135deg,#6d28d9,#a78bfa);display:grid;place-items:center;font-weight:900}
+.search{max-width:300px}
+@media(max-width:1050px){.sidebar{width:230px}.main{margin-left:230px}.span3{grid-column:span 6}.span4{grid-column:span 6}.span5,.span7,.span8,.span9{grid-column:span 12}.kpi-grid{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:800px){
+ .sidebar{display:none}.main{margin-left:0;padding:17px 14px 82px}.topbar{flex-direction:column}.page-title{font-size:26px}
+ .span2,.span3,.span4,.span5,.span6,.span7,.span8,.span9{grid-column:span 12}.formgrid{grid-template-columns:1fr}.quick-grid{grid-template-columns:1fr}.kpi-grid{grid-template-columns:repeat(2,1fr)}
+ .mobile-nav{display:flex;position:fixed;left:0;right:0;bottom:0;z-index:50;background:#0b0a0f;border-top:1px solid var(--line);overflow:auto}
+ .mobile-nav button{min-width:75px;flex:1;border:0;background:transparent;color:var(--muted);padding:9px 5px;font-size:10px}.mobile-nav button.active{color:#fff}
+ .auth-shell{grid-template-columns:1fr}.auth-brand{display:none}.auth-box{padding:25px}
+ .calendar{min-width:650px}.calendar-wrap{overflow:auto}
+}
+</style>
+</head>
+<body>
+
+<!-- =========================================================
+     AUTHENTICATION
+     ========================================================= -->
+<div id="authScreen" class="auth">
+  <div class="auth-shell">
+    <div class="auth-brand">
+      <div class="eyebrow">CreatorDash</div>
+      <h1>Creator<span>Dash</span></h1>
+      <div class="big-slogan">Less admin. More creating.</div>
+      <p>Everything Creators Need, In One Place. Manage the business behind your content — from brand opportunity to payment and profit.</p>
+      <div class="auth-points">
+        <div class="auth-point">✦ <b>Brand → Deal → Deliverable → Invoice → Payment</b></div>
+        <div class="auth-point">✦ <b>Content → Calendar → Performance</b></div>
+        <div class="auth-point">✦ <b>Revenue → Expenses → Profit</b></div>
+        <div class="auth-point">✦ <b>Business intelligence built around your data</b></div>
+      </div>
+    </div>
+    <div class="auth-box">
+      <div class="auth-tabs">
+        <button id="tabLogin" class="active" onclick="switchAuth('login')">Log in</button>
+        <button id="tabSignup" onclick="switchAuth('signup')">Create account</button>
+      </div>
+
+      <form id="loginForm" class="auth-form" onsubmit="handleLogin(event)">
+        <div>
+          <div class="eyebrow">Welcome back</div>
+          <h2 style="margin:5px 0">Run your creator business.</h2>
+          <div class="subtitle">Use your CreatorDash account to continue.</div>
+        </div>
+        <div class="field"><label>Email</label><input id="loginEmail" type="email" autocomplete="email" required placeholder="you@example.com"></div>
+        <div class="field"><label>Password</label><input id="loginPassword" type="password" autocomplete="current-password" required placeholder="••••••••"></div>
+        <div id="loginError" class="auth-error"></div>
+        <button id="loginBtn" class="btn primary" type="submit">Log in</button>
+        <button type="button" class="btn ghost" onclick="resetPassword()">Forgot password?</button>
+      </form>
+
+      <form id="signupForm" class="auth-form hidden" onsubmit="handleSignup(event)">
+        <div>
+          <div class="eyebrow">Start your workspace</div>
+          <h2 style="margin:5px 0">Create your CreatorDash.</h2>
+          <div class="subtitle">Your creator business gets its own secure workspace.</div>
+        </div>
+        <div class="field"><label>Creator name</label><input id="signupName" autocomplete="name" required placeholder="Your name"></div>
+        <div class="field"><label>Email</label><input id="signupEmail" type="email" autocomplete="email" required placeholder="you@example.com"></div>
+        <div class="field"><label>Password</label><input id="signupPassword" type="password" autocomplete="new-password" minlength="8" required placeholder="At least 8 characters"></div>
+        <div class="field"><label>Confirm password</label><input id="signupConfirm" type="password" autocomplete="new-password" minlength="8" required placeholder="Repeat password"></div>
+        <div id="signupError" class="auth-error"></div>
+        <button id="signupBtn" class="btn primary" type="submit">Create account</button>
+        <div class="auth-foot">By creating an account, you agree to use CreatorDash responsibly. Production legal Terms and Privacy documents should be added before public launch.</div>
+      </form>
+
+    </div>
+  </div>
+</div>
+
+<!-- =========================================================
+     APP SHELL
+     ========================================================= -->
+<div id="app" class="app hidden">
+  <aside class="sidebar">
+    <div class="brand">Creator<span>Dash</span><small>Creator Business OS</small></div>
+    <div class="nav-title">Workspace</div>
+    <div class="nav" id="nav"></div>
+    <div class="sidebar-bottom">
+      <div class="user-mini">
+        <b id="sideUserName">Creator</b>
+        <span id="sideUserEmail">email</span>
+      </div>
+      <button class="btn ghost small" style="width:100%;margin-top:8px" onclick="navigate('Settings')">⚙ Settings</button>
+      <button class="btn danger small" style="width:100%;margin-top:6px" onclick="logout()">Log out</button>
+    </div>
+  </aside>
+
+  <main class="main">
+    <div class="topbar">
+      <div>
+        <div class="eyebrow">Everything Creators Need, In One Place.</div>
+        <div class="page-title" id="pageTitle">Dashboard</div>
+        <div class="subtitle" id="pageSubtitle">Your creator business at a glance.</div>
+      </div>
+      <div class="actions">
+        <button class="btn" onclick="openQuickAdd()">＋ Quick add</button>
+        <button class="btn" onclick="exportData()">Export</button>
+        <button class="btn danger" onclick="logout()">Log out</button>
+      </div>
+    </div>
+
+    <section id="dashboard" class="section active"></section>
+    <section id="content" class="section"></section>
+  </main>
+
+  <nav id="mobileNav" class="mobile-nav"></nav>
+</div>
+
+<div id="modal" class="modal hidden" onclick="if(event.target===this)closeModal()">
+  <div id="modalBox" class="modal-box"></div>
+</div>
+<div id="toast" class="toast hidden"></div>
+
+<!-- Firebase Authentication + Firestore -->
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js";
+import {
+  getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword,
+  signOut, onAuthStateChanged, sendPasswordResetEmail, updateProfile,
+  sendEmailVerification
+} from "https://www.gstatic.com/firebasejs/10.14.1/firebase-auth.js";
+import {
+  getFirestore, doc, getDoc, setDoc, updateDoc, serverTimestamp
+} from "https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyD0OYvE-uqhWQYfUmLC0ue9nE1Nxbh_FO4",
+  authDomain: "creatordash-3efb4.firebaseapp.com",
+  projectId: "creatordash-3efb4",
+  storageBucket: "creatordash-3efb4.firebasestorage.app",
+  messagingSenderId: "1050528628412",
+  appId: "1:1050528628412:web:d40e846e7306ad4d0a1ab9",
+  measurementId: "G-BEYNXVT85R"
+};
+
+const configured = !Object.values(firebaseConfig).some(v => String(v).startsWith("PASTE_"));
+let auth=null, firestore=null;
+
+if(configured){
+  try{
+    const app=initializeApp(firebaseConfig);
+    auth=getAuth(app);
+    firestore=getFirestore(app);
+  }catch(e){
+    console.error(e);
+  }
+}
+
+window.CD = {
+  configured: !!(configured && auth && firestore),
+  auth,
+  firestore,
+  createUserWithEmailAndPassword,
+  signInWithEmailAndPassword,
+  signOut,
+  onAuthStateChanged,
+  sendPasswordResetEmail,
+  updateProfile,
+  sendEmailVerification,
+  getDoc,
+  setDoc,
+  updateDoc,
+  doc,
+  serverTimestamp
+};
+</script>
+
+<script>
+/* =========================================================
+   CREATOR DASH — APPLICATION ENGINE
+   ========================================================= */
+
+const FEATURE_GROUPS = {
+  "Workspace":[
+    ["Dashboard","⌂"],
+    ["Content Workspace","✦"],
+    ["Calendar","▦"],
+    ["Brand Deals","◆"],
+    ["Brand CRM","◎"],
+    ["Brand Inbox","✉"],
+    ["Proposals","◇"],
+    ["Contracts & Deal Terms","▤"],
+    ["Deliverables & Approval","✓"]
+  ],
+  "Finance":[
+    ["Invoices","▧"],
+    ["Payments","$"],
+    ["Revenue Tracker","↗"],
+    ["Expense Tracker","↘"],
+    ["Campaign Profitability","◈"],
+    ["Cash Forecast","◷"]
+  ],
+  "Growth":[
+    ["Creator Analytics","⌁"],
+    ["Business Insights","✧"],
+    ["Rate Card","₿"],
+    ["Media Kit","▣"],
+    ["Affiliate Tracker","↗"],
+    ["PR / Product Tracker","□"],
+    ["Asset Library","▤"],
+    ["Team / Collaboration","♧"],
+    ["Creator Goals","◎"],
+    ["Smart Reminders","⏰"],
+    ["Creator Portfolio","▤"],
+    ["Brand Opportunity Board","★"],
+    ["AI Creator Assistant","✦"]
+  ],
+  "Account":[
+    ["Settings","⚙"]
+  ]
+};
+
+const KEY_MAP = {
+  "Content Workspace":"content","Calendar":"calendar","Brand Deals":"deals","Brand CRM":"crm",
+  "Brand Inbox":"inbox","Proposals":"proposals","Contracts & Deal Terms":"contracts",
+  "Deliverables & Approval":"deliverables","Invoices":"invoices","Payments":"payments",
+  "Revenue Tracker":"revenue","Expense Tracker":"expenses","Campaign Profitability":"profitability",
+  "Cash Forecast":"cash","Creator Analytics":"creatorAnalytics","Business Insights":"insights",
+  "Rate Card":"ratecard","Media Kit":"media","Affiliate Tracker":"affiliate","PR / Product Tracker":"pr",
+  "Asset Library":"assets","Team / Collaboration":"team","Creator Goals":"goals",
+  "Smart Reminders":"reminders","Creator Portfolio":"portfolio","Brand Opportunity Board":"opportunities",
+  "AI Creator Assistant":"ai"
+};
+
+const FIELD_MAP = {
+  "Content Workspace":[
+    ["title","Content title","text"],["platform","Platform","text"],["date","Planned/published date","date"],
+    ["status","Status","select","Idea|Draft|Filming|Editing|Review|Scheduled|Published"],
+    ["notes","Notes","textarea"]
+  ],
+  "Calendar":[
+    ["title","Event / activity","text"],["date","Date","date"],["type","Type","select","Content|Brand|Meeting|Admin|Payment|Other"],
+    ["status","Status","select","Planned|Done|Cancelled"],["notes","Notes","textarea"]
+  ],
+  "Brand Deals":[
+    ["brand","Brand","text"],["campaign","Campaign","text"],["amount","Fee","number"],
+    ["deadline","Deadline","date"],["status","Status","select","Negotiating|Active|Completed|Cancelled"],
+    ["paymentDue","Payment due","date"],["notes","Notes","textarea"]
+  ],
+  "Brand CRM":[
+    ["brand","Brand","text"],["contact","Contact person","text"],["email","Email","email"],
+    ["relationship","Relationship","select","Prospect|Active|Past client|Priority"],["notes","Notes","textarea"]
+  ],
+  "Brand Inbox":[
+    ["brand","Brand","text"],["date","Date","date"],["subject","Subject","text"],
+    ["message","Message / follow-up","textarea"],["status","Status","select","Open|Follow-up|Closed"]
+  ],
+  "Proposals":[
+    ["brand","Brand","text"],["campaign","Campaign","text"],["amount","Offer","number"],
+    ["date","Date","date"],["status","Status","select","Draft|Sent|Accepted|Rejected"],
+    ["notes","Notes","textarea"]
+  ],
+  "Contracts & Deal Terms":[
+    ["brand","Brand","text"],["campaign","Campaign","text"],["paymentTerms","Payment terms","text"],
+    ["usageRights","Usage rights","text"],["exclusivity","Exclusivity","text"],["expiry","Contract expiry","date"],
+    ["notes","Important terms","textarea"]
+  ],
+  "Deliverables & Approval":[
+    ["campaign","Campaign","text"],["deliverable","Deliverable","text"],["due","Due date","date"],
+    ["status","Status","select","Pending|Submitted|Revision|Approved"],["revisionCount","Revision count","number"],
+    ["notes","Notes","textarea"]
+  ],
+  "Invoices":[
+    ["brand","Brand","text"],["campaign","Campaign","text"],["invoice","Invoice ID","text"],
+    ["amount","Amount","number"],["issued","Issued date","date"],["due","Due date","date"],
+    ["status","Status","select","Draft|Sent|Paid|Overdue"]
+  ],
+  "Payments":[
+    ["brand","Brand","text"],["campaign","Campaign","text"],["amount","Amount","number"],
+    ["due","Due date","date"],["date","Payment date","date"],["status","Status","select","Pending|Paid|Overdue"]
+  ],
+  "Revenue Tracker":[
+    ["source","Revenue source","select","Brand deal|Affiliate|YouTube|TikTok|UGC|Sponsorship|Other"],
+    ["amount","Amount","number"],["date","Date","date"],["campaign","Campaign (optional)","text"],
+    ["notes","Notes","textarea"]
+  ],
+  "Expense Tracker":[
+    ["category","Expense category","select","Equipment|Editor|Designer|Props|Transport|Software|Studio|Production|Marketing|Other"],
+    ["amount","Amount","number"],["date","Date","date"],["campaign","Campaign (optional)","text"],
+    ["notes","Notes","textarea"]
+  ],
+  "Campaign Profitability":[
+    ["campaign","Campaign","text"],["revenue","Revenue","number"],["cost","Campaign cost","number"],
+    ["notes","Notes","textarea"]
+  ],
+  "Cash Forecast":[
+    ["date","Expected date","date"],["type","Type","select","Incoming|Outgoing"],["amount","Amount","number"],
+    ["source","Source","text"],["status","Status","select","Expected|Received|Cancelled"],["notes","Notes","textarea"]
+  ],
+  "Creator Analytics":[
+    ["content","Content","text"],["platform","Platform","select","TikTok|Instagram|YouTube|Facebook|Other"],
+    ["date","Date","date"],["views","Views","number"],["likes","Likes","number"],["comments","Comments","number"],
+    ["shares","Shares","number"],["saves","Saves","number"],["followers","Followers","number"]
+  ],
+  "Business Insights":[
+    ["title","Insight title","text"],["category","Category","select","Finance|Content|Brand|Productivity|Other"],
+    ["notes","Insight / observation","textarea"]
+  ],
+  "Rate Card":[
+    ["service","Service","text"],["price","Price","number"],["currency","Currency","select","USD|IDR"],
+    ["notes","Terms","textarea"]
+  ],
+  "Media Kit":[
+    ["field","Metric / field","text"],["value","Value","text"],["notes","Notes","textarea"]
+  ],
+  "Affiliate Tracker":[
+    ["product","Product","text"],["platform","Platform","text"],["clicks","Clicks","number"],
+    ["orders","Orders","number"],["commission","Commission","number"],["date","Date","date"]
+  ],
+  "PR / Product Tracker":[
+    ["product","Product","text"],["brand","Brand","text"],["type","Type","select","Gifted|Paid|Loan"],
+    ["required","Content required","text"],["status","Status","select","Received|In progress|Posted|Closed"],
+    ["date","Date","date"]
+  ],
+  "Asset Library":[
+    ["name","Asset name","text"],["type","Type","select","Video|Photo|Thumbnail|Brief|Contract|Invoice|Guideline|Other"],
+    ["link","File/link","url"],["notes","Notes","textarea"]
+  ],
+  "Team / Collaboration":[
+    ["person","Team member","text"],["task","Task","text"],["due","Due date","date"],
+    ["status","Status","select","Todo|Doing|Done"],["notes","Notes","textarea"]
+  ],
+  "Creator Goals":[
+    ["goal","Goal","text"],["target","Target","number"],["current","Current","number"],
+    ["deadline","Deadline","date"],["notes","Notes","textarea"]
+  ],
+  "Smart Reminders":[
+    ["title","Reminder","text"],["date","Date","date"],["status","Status","select","Open|Done"],
+    ["notes","Notes","textarea"]
+  ],
+  "Creator Portfolio":[
+    ["title","Portfolio item","text"],["link","Link","url"],["platform","Platform","text"],
+    ["notes","Description","textarea"]
+  ],
+  "Brand Opportunity Board":[
+    ["brand","Brand","text"],["campaign","Campaign","text"],["budget","Budget","number"],
+    ["deadline","Deadline","date"],["status","Status","select","Open|Applied|Closed"],
+    ["notes","Requirements","textarea"]
+  ],
+  "AI Creator Assistant":[
+    ["question","Question","textarea"],["context","Context","textarea"]
+  ]
+};
+
+let state = {
+  user:null,
+  profile:{},
+  data:{},
+  settings:{currency:"USD",cycle:"calendar",customStart:"",customEnd:""},
+  firebaseReady:false,
+  current:"Dashboard"
+};
+
+const $ = id => document.getElementById(id);
+const esc = s => String(s ?? "").replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[m]));
+const arr = k => Array.isArray(state.data[k]) ? state.data[k] : [];
+const num = v => Number(v)||0;
+const money = n => new Intl.NumberFormat(undefined,{maximumFractionDigits:2}).format(num(n));
+const today = () => new Date().toISOString().slice(0,10);
+
+function showToast(message){
+  $("toast").textContent=message;
+  $("toast").classList.remove("hidden");
+  clearTimeout(window.__toastTimer);
+  window.__toastTimer=setTimeout(()=>$("toast").classList.add("hidden"),2800);
+}
+
+function openModal(html){
+  $("modalBox").innerHTML=html;
+  $("modal").classList.remove("hidden");
+}
+function closeModal(){ $("modal").classList.add("hidden"); }
+
+function switchAuth(mode){
+  $("loginForm").classList.toggle("hidden",mode!=="login");
+  $("signupForm").classList.toggle("hidden",mode!=="signup");
+  $("tabLogin").classList.toggle("active",mode==="login");
+  $("tabSignup").classList.toggle("active",mode==="signup");
+}
+
+function authError(id,msg){ $(id).textContent=msg||""; }
+
+function friendlyFirebaseError(e){
+  const code=e?.code||"";
+  const map={
+    "auth/email-already-in-use":"This email already has a CreatorDash account.",
+    "auth/invalid-email":"Please enter a valid email address.",
+    "auth/weak-password":"Password must be at least 8 characters.",
+    "auth/invalid-credential":"Email or password is incorrect.",
+    "auth/user-not-found":"No CreatorDash account was found for this email.",
+    "auth/wrong-password":"Email or password is incorrect.",
+    "auth/too-many-requests":"Too many attempts. Please wait and try again.",
+    "auth/network-request-failed":"Network error. Check your internet connection.",
+    "auth/operation-not-allowed":"Email/password authentication is not enabled in Firebase yet."
+  };
+  return map[code]||e?.message||"Something went wrong. Please try again.";
+}
+
+async function handleSignup(e){
+  e.preventDefault();
+  authError("signupError","");
+  if(!window.CD?.configured || !window.CD.auth){
+    authError("signupError","Unable to connect to secure sign-in. Please check your internet connection and try again.");
+    return;
+  }
+  const name=$("signupName").value.trim(),email=$("signupEmail").value.trim(),pass=$("signupPassword").value,confirm=$("signupConfirm").value;
+  const strongPassword=/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z\d]).{8,}$/;
+  if(!strongPassword.test(pass)){authError("signupError","Password must be at least 8 characters and include uppercase, lowercase, number, and special character.");return}
+  if(pass!==confirm){authError("signupError","Passwords do not match.");return}
+  $("signupBtn").disabled=true;
+  try{
+    const cred=await CD.createUserWithEmailAndPassword(CD.auth,email,pass);
+    await CD.updateProfile(cred.user,{displayName:name});
+    try{await CD.sendEmailVerification(cred.user)}catch(_){}
+    const profile={
+      name,email,createdAt:new Date().toISOString(),onboardingComplete:false
+    };
+    await CD.setDoc(CD.doc(CD.firestore,"users",cred.user.uid),{
+      profile,settings:{currency:"USD",cycle:"calendar",customStart:"",customEnd:""},data:{},updatedAt:CD.serverTimestamp()
+    });
+    showToast("Account created. Welcome to CreatorDash.");
+  }catch(err){authError("signupError",friendlyFirebaseError(err))}
+  finally{$("signupBtn").disabled=false}
+}
+
+async function handleLogin(e){
+  e.preventDefault();
+  authError("loginError","");
+  if(!window.CD?.configured || !window.CD.auth){
+    authError("loginError","Unable to connect to secure sign-in. Please check your internet connection and try again.");
+    return;
+  }
+  $("loginBtn").disabled=true;
+  try{
+    await CD.signInWithEmailAndPassword(CD.auth,$("loginEmail").value.trim(),$("loginPassword").value);
+  }catch(err){authError("loginError",friendlyFirebaseError(err))}
+  finally{$("loginBtn").disabled=false}
+}
+
+async function resetPassword(){
+  authError("loginError","");
+  if(!window.CD?.configured || !window.CD.auth){
+    authError("loginError","Unable to connect to secure sign-in. Please check your internet connection and try again.");
+    return;
+  }
+  const email=$("loginEmail").value.trim();
+  if(!email){authError("loginError","Enter your email first, then tap Forgot password.");return}
+  try{
+    await CD.sendPasswordResetEmail(CD.auth,email);
+    authError("loginError","Password reset email sent. Check your inbox.");
+  }catch(err){authError("loginError",friendlyFirebaseError(err))}
+}
+
+async function logout(){
+  if(CD?.auth) await CD.signOut(CD.auth);
+  state={user:null,profile:{},data:{},settings:{currency:"USD",cycle:"calendar",customStart:"",customEnd:""},firebaseReady:state.firebaseReady,current:"Dashboard"};
+  $("app").classList.add("hidden");$("authScreen").classList.remove("hidden");switchAuth("login");
+}
+
+async function loadUser(uid,user){
+  state.user=user;
+  try{
+    const snap=await CD.getDoc(CD.doc(CD.firestore,"users",uid));
+    if(snap.exists()){
+      const x=snap.data();
+      state.profile=x.profile||{name:user.displayName||"",email:user.email||""};
+      state.data=x.data||{};
+      state.settings=x.settings||state.settings;
+    }else{
+      state.profile={name:user.displayName||"",email:user.email||""};
+      await CD.setDoc(CD.doc(CD.firestore,"users",uid),{
+        profile:state.profile,settings:state.settings,data:{},updatedAt:CD.serverTimestamp()
+      });
+    }
+  }catch(err){
+    console.error(err);
+    showToast("Could not load your cloud data.");
+  }
+  enterApp();
+}
+
+async function persist(){
+  if(!state.user || !CD?.configured || !CD.firestore) return;
+  try{
+    await CD.setDoc(CD.doc(CD.firestore,"users",state.user.uid),{
+      profile:state.profile,
+      settings:state.settings,
+      data:state.data,
+      updatedAt:CD.serverTimestamp()
+    },{merge:true});
+  }catch(err){
+    console.error("CreatorDash Firestore save error:",err);
+    showToast("Save failed. Check your Firebase Firestore rules.");
+  }
+}
+
+function enterApp(){
+  $("authScreen").classList.add("hidden");$("app").classList.remove("hidden");
+  renderNav();renderMobileNav();updateUserUI();navigate("Dashboard");
+}
+
+function updateUserUI(){
+  $("sideUserName").textContent=state.profile.name||state.user?.displayName||"Creator";
+  $("sideUserEmail").textContent=state.profile.email||state.user?.email||"";
+}
+
+function allFeatures(){
+  return Object.values(FEATURE_GROUPS).flat().map(x=>x[0]);
+}
+
+function renderNav(){
+  let html="";
+  for(const [group,items] of Object.entries(FEATURE_GROUPS)){
+    html+=`<div class="nav-title">${group}</div>`;
+    html+=items.map(([name,icon])=>`<button data-nav="${esc(name)}" onclick="navigate(${JSON.stringify(name)})"><span class="icon">${icon}</span><span>${esc(name)}</span></button>`).join("");
+  }
+  $("nav").innerHTML=html;
+  setActiveNav();
+}
+function renderMobileNav(){
+  const items=[["Dashboard","⌂"],["Calendar","▦"],["Brand Deals","◆"],["Content Workspace","✦"],["Revenue Tracker","↗"],["Settings","⚙"]];
+  $("mobileNav").innerHTML=items.map(([n,i])=>`<button data-mnav="${esc(n)}" onclick="navigate(${JSON.stringify(n)})"><div>${i}</div>${esc(n.replace(" Workspace",""))}</button>`).join("");
+}
+function setActiveNav(){
+  document.querySelectorAll("[data-nav]").forEach(b=>b.classList.toggle("active",b.dataset.nav===state.current));
+  document.querySelectorAll("[data-mnav]").forEach(b=>b.classList.toggle("active",b.dataset.mnav===state.current));
+}
+
+const SUBTITLES={
+ "Dashboard":"Your creator business at a glance.",
+ "Content Workspace":"Plan, produce and track the content behind your campaigns.",
+ "Calendar":"One operational calendar for content, campaigns, meetings and payments.",
+ "Brand Deals":"Track commercial opportunities from negotiation to completion.",
+ "Brand CRM":"Keep the relationship history behind your brand business.",
+ "Brand Inbox":"Keep deal-related follow-ups connected to your business records.",
+ "Proposals":"Turn an offer into a structured commercial opportunity.",
+ "Contracts & Deal Terms":"Keep payment terms, usage rights and important deal conditions visible.",
+ "Deliverables & Approval":"Track drafts, revisions and final approvals.",
+ "Invoices":"Create a record of what you billed and when it is due.",
+ "Payments":"Track money that is expected, received or overdue.",
+ "Revenue Tracker":"Record actual creator income.",
+ "Expense Tracker":"Record actual business and production costs.",
+ "Campaign Profitability":"See revenue and cost at campaign level.",
+ "Cash Forecast":"Track expected incoming and outgoing cash.",
+ "Creator Analytics":"Understand content performance from the data you enter.",
+ "Business Insights":"Save your own observations and decisions.",
+ "Rate Card":"Keep your current commercial pricing in one place.",
+ "Media Kit":"Build the information you need for brand outreach.",
+ "Affiliate Tracker":"Track affiliate activity and commission.",
+ "PR / Product Tracker":"Track products, obligations and posting status.",
+ "Asset Library":"Keep links to important business assets.",
+ "Team / Collaboration":"Assign work and deadlines.",
+ "Creator Goals":"Track measurable creator-business targets.",
+ "Smart Reminders":"Keep important follow-ups visible.",
+ "Creator Portfolio":"Collect your strongest work and links.",
+ "Brand Opportunity Board":"Track opportunities you may want to pursue.",
+ "AI Creator Assistant":"Ask business questions using your CreatorDash data.",
+ "Settings":"Account, profile, reporting and workspace preferences."
+};
+
+function navigate(name){
+  state.current=name;
+  $("pageTitle").textContent=name;
+  $("pageSubtitle").textContent=SUBTITLES[name]||"";
+  setActiveNav();
+  if(name==="Dashboard") renderDashboard();
+  else renderModule(name);
+}
+
+function total(k,field){return arr(k).reduce((s,x)=>s+num(x[field]),0)}
+function count(k,fn){return arr(k).filter(fn||(()=>true)).length}
+function netProfit(){return total("revenue","amount")-total("expenses","amount")}
+
+function metric(label,val,note=""){
+  return `<div class="card"><div class="metric-label">${esc(label)}</div><div class="metric">${esc(val)}</div><div class="metric-note">${esc(note)}</div></div>`;
+}
+
+function renderDashboard(){
+  const rev=total("revenue","amount"),exp=total("expenses","amount"),profit=rev-exp;
+  const deals=arr("deals"), active=deals.filter(x=>x.status==="Active").length;
+  const unpaid=arr("payments").filter(x=>x.status==="Pending"||x.status==="Overdue");
+  const content=arr("content"),published=count("content",x=>x.status==="Published");
+  const tasks=count("team",x=>x.status!=="Done");
+  const onboarding=!state.profile?.onboardingComplete;
+
+  const insights=generateInsights();
+  const onboardingCard=onboarding?`
+    <div class="card span12 onboarding">
+      <div class="eyebrow">Start here</div><h2>Build your creator business workspace.</h2>
+      <p class="subtitle">CreatorDash works best when your real business records live here. No fake numbers are preloaded.</p>
+      <div class="quick-grid">
+        <button class="quick" onclick="navigate('Brand Deals')"><b>1. Add a brand deal</b><span>Start your commercial workflow.</span></button>
+        <button class="quick" onclick="navigate('Content Workspace')"><b>2. Add content</b><span>Track what you plan and publish.</span></button>
+        <button class="quick" onclick="navigate('Revenue Tracker')"><b>3. Add financial data</b><span>Revenue and expenses power the business view.</span></button>
+      </div>
+    </div>`:"";
+
+  $("dashboard").innerHTML=`
+    <div class="grid">
+      ${onboardingCard}
+      <div class="card span3">${metric("Revenue",rev?money(rev):"—","Recorded income")}</div>
+      <div class="card span3">${metric("Expenses",exp?money(exp):"—","Recorded costs")}</div>
+      <div class="card span3">${metric("Net Profit",(rev||exp)?money(profit):"—","Revenue minus expenses")}</div>
+      <div class="card span3">${metric("Active Deals",active||"—","Current commercial work")}</div>
+
+      <div class="card span8">
+        <h3>Business Snapshot</h3>
+        <div class="list">
+          <div class="row"><div class="row-main"><b>Published content</b><small>Content marked Published in your workspace.</small></div><span class="tag">${published}</span></div>
+          <div class="row"><div class="row-main"><b>Outstanding payments</b><small>Pending or overdue payment records.</small></div><span class="tag">${unpaid.length}</span></div>
+          <div class="row"><div class="row-main"><b>Open team tasks</b><small>Tasks not marked Done.</small></div><span class="tag">${tasks}</span></div>
+          <div class="row"><div class="row-main"><b>Content records</b><small>Total content items stored.</small></div><span class="tag">${content.length}</span></div>
+        </div>
+      </div>
+
+      <div class="card span4 analysis">
+        <h3>🧠 CreatorDash Intelligence</h3>
+        <p class="subtitle">A rule-based business readout from your actual records. Missing data is never replaced with invented numbers.</p>
+        ${insights.slice(0,2).map(i=>`<div class="insight ${i.type}"><b>${esc(i.title)}</b><br><span class="muted">${esc(i.text)}</span></div>`).join("")}
+        <button class="btn primary" style="margin-top:12px" onclick="navigate('Creator Analytics')">Open full analysis</button>
+      </div>
+
+      <div class="card span6">
+        <h3>Business Workflow</h3>
+        <div class="notice">Brand opportunity → Proposal → Contract → Deliverables → Content → Invoice → Payment → Revenue → Profit</div>
+        <div class="progress"><i style="width:${Math.min(100,(deals.length/5)*100)}%"></i></div>
+        <div class="metric-note">${deals.length?deals.length+" deal record(s) are currently in the workspace.":"No deals yet — your workflow starts when you add one."}</div>
+      </div>
+
+      <div class="card span6">
+        <h3>Quick Actions</h3>
+        <div class="quick-grid">
+          <button class="quick" onclick="navigate('Brand Deals')"><b>＋ Brand Deal</b><span>Add a campaign.</span></button>
+          <button class="quick" onclick="navigate('Content Workspace')"><b>＋ Content</b><span>Add a content item.</span></button>
+          <button class="quick" onclick="navigate('Expense Tracker')"><b>＋ Expense</b><span>Record a cost.</span></button>
+        </div>
+      </div>
+    </div>`;
+}
+
+function generateInsights(){
+  const rev=total("revenue","amount"),exp=total("expenses","amount"),profit=rev-exp;
+  const c=arr("content"),pub=count("content",x=>x.status==="Published");
+  const deals=arr("deals"),payments=arr("payments");
+  const views=total("creatorAnalytics","views"),likes=total("creatorAnalytics","likes"),comments=total("creatorAnalytics","comments"),shares=total("creatorAnalytics","shares");
+  const notes=[];
+  if(!c.length) notes.push({type:"warn",title:"Content data is still empty",text:"Add actual content records so CreatorDash can evaluate publishing activity."});
+  else if(!pub) notes.push({type:"warn",title:"No published content recorded",text:"Your current content records do not contain a Published item."});
+  else notes.push({type:"good",title:"Publishing data is available",text:`${pub} content record(s) are currently marked Published.`});
+  if(!rev&&!exp) notes.push({type:"warn",title:"Financial data is not ready",text:"Add real revenue and expense records to activate financial analysis."});
+  else if(exp>rev&&exp>0) notes.push({type:"bad",title:"Recorded costs exceed recorded revenue",text:"The current stored figures show higher expenses than revenue. Review campaign and operating costs."});
+  else notes.push({type:"good",title:"Financial tracking is active",text:`Recorded revenue is ${money(rev)} and recorded expenses are ${money(exp)}.`});
+  if(views){
+    const er=((likes+comments+shares)/views)*100;
+    notes.push({type:"good",title:"Audience data is available",text:`Recorded engagement rate is ${er.toFixed(2)}% using the views, likes, comments and shares entered.`});
+  }else notes.push({type:"warn",title:"Audience metrics are missing",text:"Enter content performance data to activate engagement analysis."});
+  const pending=payments.filter(x=>x.status==="Pending"||x.status==="Overdue").length;
+  if(pending) notes.push({type:"warn",title:"Payment follow-up needed",text:`${pending} payment record(s) are marked Pending or Overdue.`});
+  if(deals.length) notes.push({type:"good",title:"Commercial records are active",text:`${deals.length} brand deal record(s) are stored in CreatorDash.`});
+  return notes;
+}
+
+function renderAnalytics(){
+  const rev=total("revenue","amount"),exp=total("expenses","amount"),profit=rev-exp;
+  const views=total("creatorAnalytics","views"),likes=total("creatorAnalytics","likes"),comments=total("creatorAnalytics","comments"),shares=total("creatorAnalytics","shares");
+  const engagement=views?((likes+comments+shares)/views*100):0;
+  const cycleLabel=state.settings.cycle==="calendar"?"Calendar month":state.settings.cycle==="1-25"?"1–25":state.settings.cycle==="26-25"?"26–25":"Custom";
+  const insights=generateInsights();
+  $("content").innerHTML=`
+    <div class="grid">
+      <div class="card span12 analysis">
+        <h3>🧠 CreatorDash Intelligence</h3>
+        <p class="subtitle">This MVP analysis is rule-based. It reads CreatorDash records and does not invent missing information. A future AI API can turn this data into a richer conversational analyst.</p>
+        <div class="formgrid">
+          <div class="field"><label>Report cycle</label><select onchange="setCycle(this.value)">
+            <option value="calendar" ${state.settings.cycle==="calendar"?"selected":""}>Calendar month</option>
+            <option value="1-25" ${state.settings.cycle==="1-25"?"selected":""}>1–25</option>
+            <option value="26-25" ${state.settings.cycle==="26-25"?"selected":""}>26–25</option>
+            <option value="custom" ${state.settings.cycle==="custom"?"selected":""}>Custom</option>
+          </select></div>
+          <div class="field"><label>Current cycle</label><input value="${cycleLabel}" disabled></div>
+        </div>
+        ${state.settings.cycle==="custom"?`
+        <div class="formgrid" style="margin-top:10px">
+          <div class="field"><label>Custom start</label><input type="date" value="${esc(state.settings.customStart)}" onchange="setCustom('customStart',this.value)"></div>
+          <div class="field"><label>Custom end</label><input type="date" value="${esc(state.settings.customEnd)}" onchange="setCustom('customEnd',this.value)"></div>
+        </div>`:""}
+      </div>
+      <div class="card span3">${metric("Revenue",rev?money(rev):"—")}</div>
+      <div class="card span3">${metric("Expenses",exp?money(exp):"—")}</div>
+      <div class="card span3">${metric("Net Profit",(rev||exp)?money(profit):"—")}</div>
+      <div class="card span3">${metric("Engagement",views?engagement.toFixed(2)+"%":"—")}</div>
+
+      <div class="card span8">
+        <h3>Performance narrative</h3>
+        ${insights.map(i=>`<div class="insight ${i.type}"><b>${esc(i.title)}</b><br><span class="muted">${esc(i.text)}</span></div>`).join("")}
+      </div>
+      <div class="card span4">
+        <h3>Report readiness</h3>
+        <p class="muted">Content records: ${arr("content").length}</p>
+        <p class="muted">Deal records: ${arr("deals").length}</p>
+        <p class="muted">Analytics records: ${arr("creatorAnalytics").length}</p>
+        <p class="muted">Revenue records: ${arr("revenue").length}</p>
+        <p class="muted">Expense records: ${arr("expenses").length}</p>
+        <button class="btn" onclick="saveReportSnapshot()">Save report snapshot</button>
+      </div>
+    </div>`;
+}
+
+function setCycle(v){state.settings.cycle=v;persist();renderAnalytics()}
+function setCustom(k,v){state.settings[k]=v;persist()}
+
+function renderCalendar(){
+  const now=new Date(),year=now.getFullYear(),month=now.getMonth();
+  const first=new Date(year,month,1),days=new Date(year,month+1,0).getDate(),start=first.getDay();
+  const events=arr("calendar");
+  let cells="";
+  const names=["Sun","Mon","Tue","Wed","Thu","Fri","Sat"];
+  names.forEach(n=>cells+=`<div class="cal-head">${n}</div>`);
+  for(let i=0;i<start;i++) cells+=`<div class="cal-day"></div>`;
+  for(let d=1;d<=days;d++){
+    const ds=`${year}-${String(month+1).padStart(2,"0")}-${String(d).padStart(2,"0")}`;
+    const ev=events.filter(x=>x.date===ds).slice(0,3);
+    cells+=`<div class="cal-day"><div class="cal-num">${d}</div>${ev.map(x=>`<div class="cal-event">${esc(x.title||"Event")}</div>`).join("")}</div>`;
+  }
+  $("content").innerHTML=`<div class="grid"><div class="card span12"><div class="toolbar"><button class="btn" onclick="navigate('Calendar')">Today</button><span class="tag">${now.toLocaleString(undefined,{month:"long",year:"numeric"})}</span><button class="btn primary" onclick="quickRecord('Calendar')">＋ Add event</button></div><div class="calendar-wrap"><div class="calendar">${cells}</div></div></div><div class="card span12">${renderRecordsHTML("Calendar")}</div></div>`;
+}
+
+function fieldsHTML(name){
+  const fields=FIELD_MAP[name]||[["title","Title","text"],["notes","Notes","textarea"]];
+  return fields.map((f,i)=>{
+    const [key,label,type="text",opts=""]=f;
+    let input="";
+    if(type==="textarea") input=`<textarea id="field_${i}" placeholder="${esc(label)}"></textarea>`;
+    else if(type==="select") input=`<select id="field_${i}">${opts.split("|").map(o=>`<option value="${esc(o)}">${esc(o)}</option>`).join("")}</select>`;
+    else input=`<input id="field_${i}" type="${type}" placeholder="${type==="number"?"0":""}">`;
+    return `<div class="field ${type==="textarea"?"full":""}"><label>${esc(label)}</label>${input}</div>`;
+  }).join("");
+}
+
+function renderRecordsHTML(name){
+  const k=KEY_MAP[name],data=arr(k);
+  const rows=data.length?data.map((x,i)=>{
+    const vals=Object.entries(x).filter(([key,val])=>val!==""&&key!=="notes").slice(0,4).map(([,v])=>esc(v)).join(" • ");
+    return `<div class="row"><div class="row-main"><b>${esc(Object.values(x)[0]||"Record")}</b><small>${vals}</small></div><div class="row-actions"><button class="btn small" onclick="editRecord('${k}',${i},${JSON.stringify(name)})">Edit</button><button class="btn danger small" onclick="deleteRecord('${k}',${i},${JSON.stringify(name)})">Delete</button></div></div>`;
+  }).join(""):`<div class="empty">No data yet. Add your real data below.</div>`;
+  return `<h3>Records <span class="tag">${data.length}</span></h3><div class="list">${rows}</div>`;
+}
+
+function renderModule(name){
+  if(name==="Creator Analytics"){renderAnalytics();return}
+  if(name==="Calendar"){renderCalendar();return}
+  if(name==="Settings"){renderSettings();return}
+  if(name==="AI Creator Assistant"){renderAI();return}
+  const fields=FIELD_MAP[name];
+  const k=KEY_MAP[name];
+  if(!fields){
+    $("content").innerHTML=`<div class="card"><h3>${esc(name)}</h3><p class="muted">Module configuration is missing.</p></div>`;return;
+  }
+  $("content").innerHTML=`
+    <div class="grid">
+      <div class="card span12">
+        <div class="toolbar"><div style="flex:1"><h3 style="margin:0">${esc(name)}</h3><div class="subtitle">${esc(SUBTITLES[name])}</div></div><button class="btn primary" onclick="saveModuleRecord(${JSON.stringify(name)})">＋ Save record</button></div>
+        <div class="formgrid">${fieldsHTML(name)}</div>
+      </div>
+      <div class="card span12">${renderRecordsHTML(name)}</div>
+    </div>`;
+}
+
+function saveModuleRecord(name){
+  const k=KEY_MAP[name];
+  const fields=FIELD_MAP[name];
+  const obj={id:crypto.randomUUID?crypto.randomUUID():String(Date.now()),createdAt:new Date().toISOString()};
+  fields.forEach((f,i)=>{obj[f[0]]=$("field_"+i)?.value||""});
+  const mainKey=fields[0][0];
+  if(!obj[mainKey].trim()){showToast("Please fill the main field.");return}
+  if(!state.data[k]) state.data[k]=[];
+  state.data[k].push(obj);
+  persist();showToast("Record saved.");renderModule(name);
+  if(name==="Brand Deals") markOnboarding();
+}
+function editRecord(k,i,name){
+  const fields=FIELD_MAP[name],x=arr(k)[i];
+  openModal(`<div class="modal-head"><h3>Edit ${esc(name)}</h3><button class="btn small" onclick="closeModal()">Close</button></div><div class="formgrid" style="margin-top:15px">${fields.map((f,j)=>{
+    const [key,label,type="text",opts=""]=f;let val=x[key]||"",input="";
+    if(type==="textarea")input=`<textarea id="edit_${j}">${esc(val)}</textarea>`;
+    else if(type==="select")input=`<select id="edit_${j}">${opts.split("|").map(o=>`<option ${o===val?"selected":""}>${esc(o)}</option>`).join("")}</select>`;
+    else input=`<input id="edit_${j}" type="${type}" value="${esc(val)}">`;
+    return `<div class="field ${type==="textarea"?"full":""}"><label>${esc(label)}</label>${input}</div>`;
+  }).join("")}</div><button class="btn primary" style="margin-top:14px" onclick="applyEdit('${k}',${i},${JSON.stringify(name)})">Save changes</button>`);
+}
+function applyEdit(k,i,name){
+  const fields=FIELD_MAP[name],x=arr(k)[i];
+  fields.forEach((f,j)=>x[f[0]]=$("edit_"+j)?.value||"");
+  x.updatedAt=new Date().toISOString();
+  persist();closeModal();showToast("Changes saved.");renderModule(name);
+}
+function deleteRecord(k,i,name){
+  if(!confirm("Delete this record? This cannot be undone from the workspace."))return;
+  arr(k).splice(i,1);persist();showToast("Record deleted.");renderModule(name);
+}
+
+function quickRecord(name){
+  openModal(`<div class="modal-head"><h3>Add ${esc(name)}</h3><button class="btn small" onclick="closeModal()">Close</button></div><div class="formgrid" style="margin-top:15px">${fieldsHTML(name)}</div><button class="btn primary" style="margin-top:14px" onclick="saveQuickRecord(${JSON.stringify(name)})">Save</button>`);
+}
+function saveQuickRecord(name){
+  const fields=FIELD_MAP[name],k=KEY_MAP[name];
+  const obj={id:crypto.randomUUID?crypto.randomUUID():String(Date.now()),createdAt:new Date().toISOString()};
+  fields.forEach((f,i)=>obj[f[0]]=$("field_"+i)?.value||"");
+  if(!obj[fields[0][0]]){showToast("Please fill the main field.");return}
+  if(!state.data[k])state.data[k]=[];state.data[k].push(obj);persist();closeModal();showToast("Saved.");renderModule(name);
+}
+function openQuickAdd(){
+  openModal(`<div class="modal-head"><h3>Quick add</h3><button class="btn small" onclick="closeModal()">Close</button></div><p class="subtitle">Jump directly into the business records you update most often.</p><div class="quick-grid" style="margin-top:14px">
+    ${["Brand Deals","Content Workspace","Revenue Tracker","Expense Tracker","Calendar","Payments"].map(n=>`<button class="quick" onclick="closeModal();quickRecord(${JSON.stringify(n)})"><b>＋ ${esc(n)}</b><span>${esc(SUBTITLES[n])}</span></button>`).join("")}
+  </div>`);
+}
+
+function renderAI(){
+  const rev=total("revenue","amount"),exp=total("expenses","amount"),profit=rev-exp;
+  const pending=arr("payments").filter(x=>x.status==="Pending"||x.status==="Overdue");
+  $("content").innerHTML=`<div class="grid">
+    <div class="card span8 analysis">
+      <div class="eyebrow">Creator Business Analyst</div>
+      <h2>What do you want to know?</h2>
+      <p class="subtitle">This screen is designed for a future AI API. The local MVP can still answer a few structured questions from your stored data.</p>
+      <div class="field" style="margin-top:14px"><label>Your question</label><textarea id="aiQuestion" placeholder="Example: Which brands haven't paid me?"></textarea></div>
+      <button class="btn primary" style="margin-top:10px" onclick="runLocalAssistant()">Analyze my data</button>
+      <div id="aiAnswer" style="margin-top:14px"></div>
+    </div>
+    <div class="card span4">
+      <h3>Current business context</h3>
+      <p class="muted">Revenue: ${money(rev)}</p>
+      <p class="muted">Expenses: ${money(exp)}</p>
+      <p class="muted">Profit: ${money(profit)}</p>
+      <p class="muted">Outstanding payments: ${pending.length}</p>
+      <div class="notice">True conversational AI is not enabled in this client-only build. Never place a secret AI API key directly in this HTML.</div>
+    </div>
+  </div>`;
+}
+function runLocalAssistant(){
+  const q=($("aiQuestion")?.value||"").toLowerCase();
+  const rev=total("revenue","amount"),exp=total("expenses","amount"),profit=rev-exp;
+  let answer="";
+  if(q.includes("revenue")||q.includes("income")) answer=`Recorded revenue is ${money(rev)} based on the Revenue Tracker.`;
+  else if(q.includes("profit")) answer=`Recorded net result is ${money(profit)} (${money(rev)} revenue minus ${money(exp)} expenses).`;
+  else if(q.includes("expense")||q.includes("cost")) answer=`Recorded expenses total ${money(exp)}.`;
+  else if(q.includes("pay")||q.includes("invoice")){
+    const p=arr("payments").filter(x=>x.status==="Pending"||x.status==="Overdue");
+    answer=p.length?`${p.length} payment record(s) are currently Pending or Overdue. Review the Payments module for brand, campaign and due-date details.`:"No payment record is currently marked Pending or Overdue.";
+  }else if(q.includes("brand")||q.includes("deal")) answer=`CreatorDash currently contains ${arr("deals").length} brand deal record(s).`;
+  else answer="I can currently answer questions about recorded revenue, expenses, profit, payments and brand deals. The full AI Assistant requires a secure backend/API integration.";
+  $("aiAnswer").innerHTML=`<div class="insight"><b>CreatorDash Intelligence</b><br><span class="muted">${esc(answer)}</span></div>`;
+}
+
+function renderSettings(){
+  const p=state.profile;
+  $("content").innerHTML=`<div class="grid">
+    <div class="card span6">
+      <div class="profile-card"><div class="avatar">${esc((p.name||"C").slice(0,1).toUpperCase())}</div><div><h3 style="margin:0">${esc(p.name||"Creator")}</h3><span class="muted">${esc(p.email||state.user?.email||"")}</span></div></div>
+      <div class="divider"></div>
+      <h3>Creator profile</h3>
+      <div class="formgrid">
+        <div class="field"><label>Creator name</label><input id="setName" value="${esc(p.name||"")}"></div>
+        <div class="field"><label>Country / location</label><input id="setLocation" value="${esc(p.location||"")}"></div>
+        <div class="field"><label>Niche</label><input id="setNiche" value="${esc(p.niche||"")}" placeholder="e.g. beauty, fashion, finance"></div>
+        <div class="field"><label>Main platform</label><input id="setPlatform" value="${esc(p.platform||"")}" placeholder="TikTok / Instagram / YouTube"></div>
+        <div class="field full"><label>Bio</label><textarea id="setBio">${esc(p.bio||"")}</textarea></div>
+      </div>
+      <button class="btn primary" style="margin-top:12px" onclick="saveProfile()">Save profile</button>
+    </div>
+    <div class="card span6">
+      <h3>Reporting & workspace</h3>
+      <div class="formgrid">
+        <div class="field"><label>Default currency</label><select id="setCurrency" onchange="state.settings.currency=this.value;persist()"><option ${state.settings.currency==="USD"?"selected":""}>USD</option><option ${state.settings.currency==="IDR"?"selected":""}>IDR</option></select></div>
+        <div class="field"><label>Report cycle</label><select id="setCycle" onchange="state.settings.cycle=this.value;persist()"><option value="calendar" ${state.settings.cycle==="calendar"?"selected":""}>Calendar month</option><option value="1-25" ${state.settings.cycle==="1-25"?"selected":""}>1–25</option><option value="26-25" ${state.settings.cycle==="26-25"?"selected":""}>26–25</option><option value="custom" ${state.settings.cycle==="custom"?"selected":""}>Custom</option></select></div>
+      </div>
+      <div class="divider"></div>
+      <h3>Account</h3>
+      <p class="muted">Email: ${esc(p.email||state.user?.email||"")}</p>
+      <button class="btn" onclick="resetPassword()">Send password reset email</button>
+      <button class="btn danger" onclick="logout()" style="margin-left:6px">Log out</button>
+      <div class="divider"></div>
+      <h3>Data</h3>
+      <p class="muted">Your records are stored in Firestore under your authenticated user account.</p>
+      <button class="btn" onclick="exportData()">Export my data</button>
+    </div>
+    <div class="card span12">
+      <h3>CreatorDash product status</h3>
+      <div class="notice">
+        Authentication: Firebase structure included. Cloud database: Firestore structure included. AI: rule-based MVP only. Social integrations: not connected. Payment subscription: not connected. File storage: not connected.
+      </div>
+    </div>
+  </div>`;
+}
+
+async function saveProfile(){
+  state.profile.name=$("setName").value.trim();
+  state.profile.location=$("setLocation").value.trim();
+  state.profile.niche=$("setNiche").value.trim();
+  state.profile.platform=$("setPlatform").value.trim();
+  state.profile.bio=$("setBio").value.trim();
+  state.profile.email=state.user?.email||state.profile.email;
+  if(state.user && CD?.auth){try{await CD.updateProfile(state.user,{displayName:state.profile.name})}catch(e){}}
+  await persist();updateUserUI();showToast("Profile saved.");
+}
+
+function markOnboarding(){
+  if(!state.profile.onboardingComplete){
+    state.profile.onboardingComplete=true;
+    persist();
+  }
+}
+
+function saveReportSnapshot(){
+  const snapshots=arr("reportSnapshots");
+  const rev=total("revenue","amount"),exp=total("expenses","amount");
+  snapshots.push({
+    id:crypto.randomUUID?crypto.randomUUID():String(Date.now()),
+    createdAt:new Date().toISOString(),
+    cycle:state.settings.cycle,
+    revenue:rev,expenses:exp,profit:rev-exp,
+    deals:arr("deals").length,content:arr("content").length
+  });
+  state.data.reportSnapshots=snapshots;persist();showToast("Report snapshot saved.");
+}
+
+function exportData(){
+  const payload={profile:state.profile,settings:state.settings,data:state.data,exportedAt:new Date().toISOString()};
+  const blob=new Blob([JSON.stringify(payload,null,2)],{type:"application/json"});
+  const a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download="CreatorDash-export.json";a.click();setTimeout(()=>URL.revokeObjectURL(a.href),500);
+}
+
+function startCreatorDashAuth(){
+  state.firebaseReady=!!window.CD?.configured;
+
+  if(!window.CD?.configured || !window.CD?.auth || !window.CD?.onAuthStateChanged){
+    console.error("CreatorDash Firebase Authentication is not available.");
+    $("app").classList.add("hidden");
+    $("authScreen").classList.remove("hidden");
+    authError("loginError","Secure sign-in is unavailable. Please open the published HTTPS version of CreatorDash and make sure Firebase Email/Password is enabled.");
+    return;
+  }
+
+  window.CD.auth.languageCode="en";
+
+  window.CD.onAuthStateChanged(window.CD.auth,async user=>{
+    console.log("CreatorDash auth state:",user?user.email:"signed out");
+
+    if(user){
+      await loadUser(user.uid,user);
+    }else{
+      state.user=null;
+      $("app").classList.add("hidden");
+      $("authScreen").classList.remove("hidden");
+      switchAuth("login");
+    }
+  });
+}
+
+startCreatorDashAuth();
+
+</script>
+</body>
+</html>
