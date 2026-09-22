@@ -567,14 +567,17 @@ async function loadUser(uid,user){
       });
     }
   }catch(err){
-    console.error(err);
-    showToast("Could not load your cloud data.");
+    console.error("CreatorDash Firestore load error:",err);
+    showToast("Could not load cloud data: " + friendlyFirestoreError(err));
   }
   enterApp();
 }
 
 async function persist(){
-  if(!state.user || !CD?.configured || !CD.firestore) return;
+  if(!state.user || !CD?.configured || !CD.firestore){
+    showToast("Cloud database is not connected.");
+    return false;
+  }
   try{
     await CD.setDoc(CD.doc(CD.firestore,"users",state.user.uid),{
       profile:state.profile,
@@ -582,10 +585,21 @@ async function persist(){
       data:state.data,
       updatedAt:CD.serverTimestamp()
     },{merge:true});
+    return true;
   }catch(err){
     console.error("CreatorDash Firestore save error:",err);
-    showToast("Save failed. Check your Firebase Firestore rules.");
+    showToast("Save failed: " + friendlyFirestoreError(err));
+    return false;
   }
+}
+
+function friendlyFirestoreError(err){
+  const code=err?.code||"";
+  if(code.includes("permission-denied")) return "Firestore permission denied. Check your Firestore Rules.";
+  if(code.includes("unauthenticated")) return "Your login session expired. Please log in again.";
+  if(code.includes("failed-precondition")) return "Firestore is not ready for this request.";
+  if(code.includes("unavailable")) return "Firebase is temporarily unavailable. Check your connection.";
+  return err?.message || "Firebase could not save the data.";
 }
 
 function enterApp(){
@@ -656,8 +670,14 @@ function navigate(name){
   state.current=name;
   $("pageTitle").textContent=name;
   $("pageSubtitle").textContent=SUBTITLES[name]||"";
+
+  // IMPORTANT: switch the visible page. Dashboard and content are separate sections.
+  $("dashboard").classList.toggle("active", name === "Dashboard");
+  $("content").classList.toggle("active", name !== "Dashboard");
+
   setActiveNav();
-  if(name==="Dashboard") renderDashboard();
+
+  if(name === "Dashboard") renderDashboard();
   else renderModule(name);
 }
 
@@ -801,8 +821,26 @@ function renderAnalytics(){
     </div>`;
 }
 
-function setCycle(v){state.settings.cycle=v;persist();renderAnalytics()}
-function setCustom(k,v){state.settings[k]=v;persist()}
+async function setCurrency(v){
+  const old=state.settings.currency;
+  state.settings.currency=v;
+  const saved=await persist();
+  if(!saved) state.settings.currency=old;
+}
+
+async function setCycle(v){
+  const old=state.settings.cycle;
+  state.settings.cycle=v;
+  const saved=await persist();
+  if(!saved) state.settings.cycle=old;
+  renderAnalytics();
+}
+async function setCustom(k,v){
+  const old=state.settings[k];
+  state.settings[k]=v;
+  const saved=await persist();
+  if(!saved) state.settings[k]=old;
+}
 
 function renderCalendar(){
   const now=new Date(),year=now.getFullYear(),month=now.getMonth();
@@ -820,14 +858,14 @@ function renderCalendar(){
   $("content").innerHTML=`<div class="grid"><div class="card span12"><div class="toolbar"><button class="btn" onclick="navigate('Calendar')">Today</button><span class="tag">${now.toLocaleString(undefined,{month:"long",year:"numeric"})}</span><button class="btn primary" onclick="quickRecord('Calendar')">＋ Add event</button></div><div class="calendar-wrap"><div class="calendar">${cells}</div></div></div><div class="card span12">${renderRecordsHTML("Calendar")}</div></div>`;
 }
 
-function fieldsHTML(name){
+function fieldsHTML(name,prefix="field_"){
   const fields=FIELD_MAP[name]||[["title","Title","text"],["notes","Notes","textarea"]];
   return fields.map((f,i)=>{
     const [key,label,type="text",opts=""]=f;
     let input="";
-    if(type==="textarea") input=`<textarea id="field_${i}" placeholder="${esc(label)}"></textarea>`;
-    else if(type==="select") input=`<select id="field_${i}">${opts.split("|").map(o=>`<option value="${esc(o)}">${esc(o)}</option>`).join("")}</select>`;
-    else input=`<input id="field_${i}" type="${type}" placeholder="${type==="number"?"0":""}">`;
+    if(type==="textarea") input=`<textarea id="${prefix}${i}" placeholder="${esc(label)}"></textarea>`;
+    else if(type==="select") input=`<select id="${prefix}${i}">${opts.split("|").map(o=>`<option value="${esc(o)}">${esc(o)}</option>`).join("")}</select>`;
+    else input=`<input id="${prefix}${i}" type="${type}" placeholder="${type==="number"?"0":""}">`;
     return `<div class="field ${type==="textarea"?"full":""}"><label>${esc(label)}</label>${input}</div>`;
   }).join("");
 }
@@ -835,8 +873,9 @@ function fieldsHTML(name){
 function renderRecordsHTML(name){
   const k=KEY_MAP[name],data=arr(k);
   const rows=data.length?data.map((x,i)=>{
-    const vals=Object.entries(x).filter(([key,val])=>val!==""&&key!=="notes").slice(0,4).map(([,v])=>esc(v)).join(" • ");
-    return `<div class="row"><div class="row-main"><b>${esc(Object.values(x)[0]||"Record")}</b><small>${vals}</small></div><div class="row-actions"><button class="btn small" onclick="editRecord('${k}',${i},${JSON.stringify(name)})">Edit</button><button class="btn danger small" onclick="deleteRecord('${k}',${i},${JSON.stringify(name)})">Delete</button></div></div>`;
+    const vals=Object.entries(x).filter(([key,val])=>val!==""&&key!=="notes"&&key!=="id"&&key!=="createdAt").slice(0,4).map(([,v])=>esc(v)).join(" • ");
+    const titleKey=FIELD_MAP[name]?.[0]?.[0];
+    return `<div class="row"><div class="row-main"><b>${esc((titleKey&&x[titleKey])||"Record")}</b><small>${vals}</small></div><div class="row-actions"><button class="btn small" onclick="editRecord('${k}',${i},${JSON.stringify(name)})">Edit</button><button class="btn danger small" onclick="deleteRecord('${k}',${i},${JSON.stringify(name)})">Delete</button></div></div>`;
   }).join(""):`<div class="empty">No data yet. Add your real data below.</div>`;
   return `<h3>Records <span class="tag">${data.length}</span></h3><div class="list">${rows}</div>`;
 }
@@ -861,17 +900,28 @@ function renderModule(name){
     </div>`;
 }
 
-function saveModuleRecord(name){
+async function saveModuleRecord(name){
   const k=KEY_MAP[name];
   const fields=FIELD_MAP[name];
+  if(!k || !fields){showToast("This module is not configured correctly.");return}
+
   const obj={id:crypto.randomUUID?crypto.randomUUID():String(Date.now()),createdAt:new Date().toISOString()};
   fields.forEach((f,i)=>{obj[f[0]]=$("field_"+i)?.value||""});
   const mainKey=fields[0][0];
-  if(!obj[mainKey].trim()){showToast("Please fill the main field.");return}
+  if(!String(obj[mainKey]||"").trim()){showToast("Please fill the main field.");return}
+
   if(!state.data[k]) state.data[k]=[];
   state.data[k].push(obj);
-  persist();showToast("Record saved.");renderModule(name);
-  if(name==="Brand Deals") markOnboarding();
+
+  const saved=await persist();
+  if(!saved){
+    state.data[k].pop();
+    return;
+  }
+
+  showToast("Record saved to Firestore.");
+  renderModule(name);
+  if(name==="Brand Deals") await markOnboarding();
 }
 function editRecord(k,i,name){
   const fields=FIELD_MAP[name],x=arr(k)[i];
@@ -883,26 +933,40 @@ function editRecord(k,i,name){
     return `<div class="field ${type==="textarea"?"full":""}"><label>${esc(label)}</label>${input}</div>`;
   }).join("")}</div><button class="btn primary" style="margin-top:14px" onclick="applyEdit('${k}',${i},${JSON.stringify(name)})">Save changes</button>`);
 }
-function applyEdit(k,i,name){
+async function applyEdit(k,i,name){
   const fields=FIELD_MAP[name],x=arr(k)[i];
+  if(!x){showToast("Record not found.");return}
+  const before={...x};
   fields.forEach((f,j)=>x[f[0]]=$("edit_"+j)?.value||"");
   x.updatedAt=new Date().toISOString();
-  persist();closeModal();showToast("Changes saved.");renderModule(name);
+
+  const saved=await persist();
+  if(!saved){Object.assign(x,before);return}
+
+  closeModal();showToast("Changes saved to Firestore.");renderModule(name);
 }
-function deleteRecord(k,i,name){
+async function deleteRecord(k,i,name){
   if(!confirm("Delete this record? This cannot be undone from the workspace."))return;
-  arr(k).splice(i,1);persist();showToast("Record deleted.");renderModule(name);
+  const removed=arr(k).splice(i,1)[0];
+  const saved=await persist();
+  if(!saved){arr(k).splice(i,0,removed);return}
+  showToast("Record deleted from Firestore.");renderModule(name);
 }
 
 function quickRecord(name){
-  openModal(`<div class="modal-head"><h3>Add ${esc(name)}</h3><button class="btn small" onclick="closeModal()">Close</button></div><div class="formgrid" style="margin-top:15px">${fieldsHTML(name)}</div><button class="btn primary" style="margin-top:14px" onclick="saveQuickRecord(${JSON.stringify(name)})">Save</button>`);
+  openModal(`<div class="modal-head"><h3>Add ${esc(name)}</h3><button class="btn small" onclick="closeModal()">Close</button></div><div class="formgrid" style="margin-top:15px">${fieldsHTML(name,"qfield_")}</div><button class="btn primary" style="margin-top:14px" onclick="saveQuickRecord(${JSON.stringify(name)})">Save</button>`);
 }
-function saveQuickRecord(name){
+async function saveQuickRecord(name){
   const fields=FIELD_MAP[name],k=KEY_MAP[name];
+  if(!fields || !k){showToast("This module is not configured correctly.");return}
   const obj={id:crypto.randomUUID?crypto.randomUUID():String(Date.now()),createdAt:new Date().toISOString()};
-  fields.forEach((f,i)=>obj[f[0]]=$("field_"+i)?.value||"");
-  if(!obj[fields[0][0]]){showToast("Please fill the main field.");return}
-  if(!state.data[k])state.data[k]=[];state.data[k].push(obj);persist();closeModal();showToast("Saved.");renderModule(name);
+  fields.forEach((f,i)=>obj[f[0]]=$("qfield_"+i)?.value||"");
+  if(!String(obj[fields[0][0]]||"").trim()){showToast("Please fill the main field.");return}
+  if(!state.data[k])state.data[k]=[];
+  state.data[k].push(obj);
+  const saved=await persist();
+  if(!saved){state.data[k].pop();return}
+  closeModal();showToast("Saved to Firestore.");renderModule(name);
 }
 function openQuickAdd(){
   openModal(`<div class="modal-head"><h3>Quick add</h3><button class="btn small" onclick="closeModal()">Close</button></div><p class="subtitle">Jump directly into the business records you update most often.</p><div class="quick-grid" style="margin-top:14px">
@@ -966,8 +1030,8 @@ function renderSettings(){
     <div class="card span6">
       <h3>Reporting & workspace</h3>
       <div class="formgrid">
-        <div class="field"><label>Default currency</label><select id="setCurrency" onchange="state.settings.currency=this.value;persist()"><option ${state.settings.currency==="USD"?"selected":""}>USD</option><option ${state.settings.currency==="IDR"?"selected":""}>IDR</option></select></div>
-        <div class="field"><label>Report cycle</label><select id="setCycle" onchange="state.settings.cycle=this.value;persist()"><option value="calendar" ${state.settings.cycle==="calendar"?"selected":""}>Calendar month</option><option value="1-25" ${state.settings.cycle==="1-25"?"selected":""}>1–25</option><option value="26-25" ${state.settings.cycle==="26-25"?"selected":""}>26–25</option><option value="custom" ${state.settings.cycle==="custom"?"selected":""}>Custom</option></select></div>
+        <div class="field"><label>Default currency</label><select id="setCurrency" onchange="setCurrency(this.value)"><option ${state.settings.currency==="USD"?"selected":""}>USD</option><option ${state.settings.currency==="IDR"?"selected":""}>IDR</option></select></div>
+        <div class="field"><label>Report cycle</label><select id="setCycle" onchange="setCycle(this.value)"><option value="calendar" ${state.settings.cycle==="calendar"?"selected":""}>Calendar month</option><option value="1-25" ${state.settings.cycle==="1-25"?"selected":""}>1–25</option><option value="26-25" ${state.settings.cycle==="26-25"?"selected":""}>26–25</option><option value="custom" ${state.settings.cycle==="custom"?"selected":""}>Custom</option></select></div>
       </div>
       <div class="divider"></div>
       <h3>Account</h3>
@@ -996,17 +1060,19 @@ async function saveProfile(){
   state.profile.bio=$("setBio").value.trim();
   state.profile.email=state.user?.email||state.profile.email;
   if(state.user && CD?.auth){try{await CD.updateProfile(state.user,{displayName:state.profile.name})}catch(e){}}
-  await persist();updateUserUI();showToast("Profile saved.");
+  const saved=await persist();
+  if(saved){updateUserUI();showToast("Profile saved to Firestore.");}
 }
 
-function markOnboarding(){
+async function markOnboarding(){
   if(!state.profile.onboardingComplete){
     state.profile.onboardingComplete=true;
-    persist();
+    const saved=await persist();
+    if(!saved) state.profile.onboardingComplete=false;
   }
 }
 
-function saveReportSnapshot(){
+async function saveReportSnapshot(){
   const snapshots=arr("reportSnapshots");
   const rev=total("revenue","amount"),exp=total("expenses","amount");
   snapshots.push({
@@ -1016,7 +1082,9 @@ function saveReportSnapshot(){
     revenue:rev,expenses:exp,profit:rev-exp,
     deals:arr("deals").length,content:arr("content").length
   });
-  state.data.reportSnapshots=snapshots;persist();showToast("Report snapshot saved.");
+  state.data.reportSnapshots=snapshots;
+  const saved=await persist();
+  if(saved) showToast("Report snapshot saved to Firestore.");
 }
 
 function exportData(){
