@@ -56,7 +56,7 @@ a{color:inherit}
 .metric-label{font-size:12px;color:var(--muted)}
 .metric{font-size:27px;font-weight:900;margin-top:4px;letter-spacing:-.03em}
 .metric-note{font-size:11px;color:var(--muted);margin-top:5px}
-.section{display:none}.section.active{display:block}
+
 .formgrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:11px}
 .field label{display:block;color:#b9b2c5;font-size:11px;font-weight:700;margin:0 0 6px}
 .field input,.field select,.field textarea{width:100%;background:#0a090e;border:1px solid #2a2533;color:#fff;padding:10px 11px;border-radius:10px;outline:none}
@@ -201,8 +201,7 @@ a{color:inherit}
       </div>
     </div>
 
-    <section id="dashboard" class="section active"></section>
-    <section id="content" class="section"></section>
+    <div id="pageContent"></div>
   </main>
 
   <nav id="mobileNav" class="mobile-nav"></nav>
@@ -217,6 +216,8 @@ a{color:inherit}
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
+<!-- Firebase Authentication + Firestore -->
+
 <script>
 /* Firebase: classic/compat SDK so GitHub Pages does not depend on ES-module timing. */
 const firebaseConfig = {
@@ -604,7 +605,7 @@ function friendlyFirestoreError(err){
 
 function enterApp(){
   $("authScreen").classList.add("hidden");$("app").classList.remove("hidden");
-  renderNav();renderMobileNav();updateUserUI();navigate("Dashboard");
+  renderNav();renderMobileNav();bindNavigation();bindDynamicActions();updateUserUI();navigate("Dashboard");
 }
 
 function updateUserUI(){
@@ -620,18 +621,28 @@ function renderNav(){
   let html="";
   for(const [group,items] of Object.entries(FEATURE_GROUPS)){
     html+=`<div class="nav-title">${group}</div>`;
-    html+=items.map(([name,icon])=>`<button data-nav="${esc(name)}" onclick="navigate(${JSON.stringify(name)})"><span class="icon">${icon}</span><span>${esc(name)}</span></button>`).join("");
+    html+=items.map(([name,icon])=>`<button data-nav="${esc(name)}" type="button"><span class="icon">${icon}</span><span>${esc(name)}</span></button>`).join("");
   }
   $("nav").innerHTML=html;
   setActiveNav();
 }
 function renderMobileNav(){
   const items=[["Dashboard","⌂"],["Calendar","▦"],["Brand Deals","◆"],["Content Workspace","✦"],["Revenue Tracker","↗"],["Settings","⚙"]];
-  $("mobileNav").innerHTML=items.map(([n,i])=>`<button data-mnav="${esc(n)}" onclick="navigate(${JSON.stringify(n)})"><div>${i}</div>${esc(n.replace(" Workspace",""))}</button>`).join("");
+  $("mobileNav").innerHTML=items.map(([n,i])=>`<button data-mnav="${esc(n)}" type="button"><div>${i}</div>${esc(n.replace(" Workspace",""))}</button>`).join("");
 }
 function setActiveNav(){
   document.querySelectorAll("[data-nav]").forEach(b=>b.classList.toggle("active",b.dataset.nav===state.current));
   document.querySelectorAll("[data-mnav]").forEach(b=>b.classList.toggle("active",b.dataset.mnav===state.current));
+}
+function bindNavigation(){
+  if(window.__creatorDashNavBound) return;
+  window.__creatorDashNavBound=true;
+  document.addEventListener("click",e=>{
+    const btn=e.target.closest("[data-nav],[data-mnav]");
+    if(!btn) return;
+    const name=btn.dataset.nav||btn.dataset.mnav;
+    if(name) navigate(name);
+  });
 }
 
 const SUBTITLES={
@@ -666,14 +677,32 @@ const SUBTITLES={
  "Settings":"Account, profile, reporting and workspace preferences."
 };
 
+function bindDynamicActions(){
+  if(window.__creatorDashActionsBound) return;
+  window.__creatorDashActionsBound=true;
+  document.addEventListener("click",e=>{
+    const save=e.target.closest("[data-module-save]");
+    if(save){saveModuleRecord(save.dataset.moduleSave);return;}
+    const edit=e.target.closest("[data-record-action=edit]");
+    if(edit){editRecord(edit.dataset.recordKey,Number(edit.dataset.recordIndex),edit.dataset.recordName);return;}
+    const del=e.target.closest("[data-record-action=delete]");
+    if(del){deleteRecord(del.dataset.recordKey,Number(del.dataset.recordIndex),del.dataset.recordName);return;}
+    const editSave=e.target.closest("[data-edit-save]");
+    if(editSave){applyEdit(editSave.dataset.editKey,Number(editSave.dataset.editIndex),editSave.dataset.editName);return;}
+    const quickSave=e.target.closest("[data-quick-save]");
+    if(quickSave){saveQuickRecord(quickSave.dataset.quickSave);return;}
+    const quickOpen=e.target.closest("[data-quick-open]");
+    if(quickOpen){closeModal();quickRecord(quickOpen.dataset.quickOpen);return;}
+  });
+}
+
 function navigate(name){
   state.current=name;
   $("pageTitle").textContent=name;
   $("pageSubtitle").textContent=SUBTITLES[name]||"";
 
   // IMPORTANT: switch the visible page. Dashboard and content are separate sections.
-  $("dashboard").classList.toggle("active", name === "Dashboard");
-  $("content").classList.toggle("active", name !== "Dashboard");
+  
 
   setActiveNav();
 
@@ -709,7 +738,7 @@ function renderDashboard(){
       </div>
     </div>`:"";
 
-  $("dashboard").innerHTML=`
+  $("pageContent").innerHTML=`
     <div class="grid">
       ${onboardingCard}
       <div class="card span3">${metric("Revenue",rev?money(rev):"—","Recorded income")}</div>
@@ -780,7 +809,7 @@ function renderAnalytics(){
   const engagement=views?((likes+comments+shares)/views*100):0;
   const cycleLabel=state.settings.cycle==="calendar"?"Calendar month":state.settings.cycle==="1-25"?"1–25":state.settings.cycle==="26-25"?"26–25":"Custom";
   const insights=generateInsights();
-  $("content").innerHTML=`
+  $("pageContent").innerHTML=`
     <div class="grid">
       <div class="card span12 analysis">
         <h3>🧠 CreatorDash Intelligence</h3>
@@ -855,7 +884,7 @@ function renderCalendar(){
     const ev=events.filter(x=>x.date===ds).slice(0,3);
     cells+=`<div class="cal-day"><div class="cal-num">${d}</div>${ev.map(x=>`<div class="cal-event">${esc(x.title||"Event")}</div>`).join("")}</div>`;
   }
-  $("content").innerHTML=`<div class="grid"><div class="card span12"><div class="toolbar"><button class="btn" onclick="navigate('Calendar')">Today</button><span class="tag">${now.toLocaleString(undefined,{month:"long",year:"numeric"})}</span><button class="btn primary" onclick="quickRecord('Calendar')">＋ Add event</button></div><div class="calendar-wrap"><div class="calendar">${cells}</div></div></div><div class="card span12">${renderRecordsHTML("Calendar")}</div></div>`;
+  $("pageContent").innerHTML=`<div class="grid"><div class="card span12"><div class="toolbar"><button class="btn" onclick="navigate('Calendar')">Today</button><span class="tag">${now.toLocaleString(undefined,{month:"long",year:"numeric"})}</span><button class="btn primary" onclick="quickRecord('Calendar')">＋ Add event</button></div><div class="calendar-wrap"><div class="calendar">${cells}</div></div></div><div class="card span12">${renderRecordsHTML("Calendar")}</div></div>`;
 }
 
 function fieldsHTML(name,prefix="field_"){
@@ -875,7 +904,7 @@ function renderRecordsHTML(name){
   const rows=data.length?data.map((x,i)=>{
     const vals=Object.entries(x).filter(([key,val])=>val!==""&&key!=="notes"&&key!=="id"&&key!=="createdAt").slice(0,4).map(([,v])=>esc(v)).join(" • ");
     const titleKey=FIELD_MAP[name]?.[0]?.[0];
-    return `<div class="row"><div class="row-main"><b>${esc((titleKey&&x[titleKey])||"Record")}</b><small>${vals}</small></div><div class="row-actions"><button class="btn small" onclick="editRecord('${k}',${i},${JSON.stringify(name)})">Edit</button><button class="btn danger small" onclick="deleteRecord('${k}',${i},${JSON.stringify(name)})">Delete</button></div></div>`;
+    return `<div class="row"><div class="row-main"><b>${esc((titleKey&&x[titleKey])||"Record")}</b><small>${vals}</small></div><div class="row-actions"><button class="btn small" type="button" data-record-action="edit" data-record-key="${esc(k)}" data-record-index="${i}" data-record-name="${esc(name)}">Edit</button><button class="btn danger small" type="button" data-record-action="delete" data-record-key="${esc(k)}" data-record-index="${i}" data-record-name="${esc(name)}">Delete</button></div></div>`;
   }).join(""):`<div class="empty">No data yet. Add your real data below.</div>`;
   return `<h3>Records <span class="tag">${data.length}</span></h3><div class="list">${rows}</div>`;
 }
@@ -888,12 +917,12 @@ function renderModule(name){
   const fields=FIELD_MAP[name];
   const k=KEY_MAP[name];
   if(!fields){
-    $("content").innerHTML=`<div class="card"><h3>${esc(name)}</h3><p class="muted">Module configuration is missing.</p></div>`;return;
+    $("pageContent").innerHTML=`<div class="card"><h3>${esc(name)}</h3><p class="muted">Module configuration is missing.</p></div>`;return;
   }
-  $("content").innerHTML=`
+  $("pageContent").innerHTML=`
     <div class="grid">
       <div class="card span12">
-        <div class="toolbar"><div style="flex:1"><h3 style="margin:0">${esc(name)}</h3><div class="subtitle">${esc(SUBTITLES[name])}</div></div><button class="btn primary" onclick="saveModuleRecord(${JSON.stringify(name)})">＋ Save record</button></div>
+        <div class="toolbar"><div style="flex:1"><h3 style="margin:0">${esc(name)}</h3><div class="subtitle">${esc(SUBTITLES[name])}</div></div><button class="btn primary" type="button" data-module-save="${esc(name)}">＋ Save record</button></div>
         <div class="formgrid">${fieldsHTML(name)}</div>
       </div>
       <div class="card span12">${renderRecordsHTML(name)}</div>
@@ -931,7 +960,7 @@ function editRecord(k,i,name){
     else if(type==="select")input=`<select id="edit_${j}">${opts.split("|").map(o=>`<option ${o===val?"selected":""}>${esc(o)}</option>`).join("")}</select>`;
     else input=`<input id="edit_${j}" type="${type}" value="${esc(val)}">`;
     return `<div class="field ${type==="textarea"?"full":""}"><label>${esc(label)}</label>${input}</div>`;
-  }).join("")}</div><button class="btn primary" style="margin-top:14px" onclick="applyEdit('${k}',${i},${JSON.stringify(name)})">Save changes</button>`);
+  }).join("")}</div><button class="btn primary" type="button" data-edit-save="1" data-edit-key="${esc(k)}" data-edit-index="${i}" data-edit-name="${esc(name)}">Save changes</button>`);
 }
 async function applyEdit(k,i,name){
   const fields=FIELD_MAP[name],x=arr(k)[i];
@@ -954,7 +983,7 @@ async function deleteRecord(k,i,name){
 }
 
 function quickRecord(name){
-  openModal(`<div class="modal-head"><h3>Add ${esc(name)}</h3><button class="btn small" onclick="closeModal()">Close</button></div><div class="formgrid" style="margin-top:15px">${fieldsHTML(name,"qfield_")}</div><button class="btn primary" style="margin-top:14px" onclick="saveQuickRecord(${JSON.stringify(name)})">Save</button>`);
+  openModal(`<div class="modal-head"><h3>Add ${esc(name)}</h3><button class="btn small" onclick="closeModal()">Close</button></div><div class="formgrid" style="margin-top:15px">${fieldsHTML(name,"qfield_")}</div><button class="btn primary" type="button" data-quick-save="${esc(name)}" style="margin-top:14px">Save</button>`);
 }
 async function saveQuickRecord(name){
   const fields=FIELD_MAP[name],k=KEY_MAP[name];
@@ -970,14 +999,14 @@ async function saveQuickRecord(name){
 }
 function openQuickAdd(){
   openModal(`<div class="modal-head"><h3>Quick add</h3><button class="btn small" onclick="closeModal()">Close</button></div><p class="subtitle">Jump directly into the business records you update most often.</p><div class="quick-grid" style="margin-top:14px">
-    ${["Brand Deals","Content Workspace","Revenue Tracker","Expense Tracker","Calendar","Payments"].map(n=>`<button class="quick" onclick="closeModal();quickRecord(${JSON.stringify(n)})"><b>＋ ${esc(n)}</b><span>${esc(SUBTITLES[n])}</span></button>`).join("")}
+    ${["Brand Deals","Content Workspace","Revenue Tracker","Expense Tracker","Calendar","Payments"].map(n=>`<button class="quick" type="button" data-quick-open="${esc(n)}"><b>＋ ${esc(n)}</b><span>${esc(SUBTITLES[n])}</span></button>`).join("")}
   </div>`);
 }
 
 function renderAI(){
   const rev=total("revenue","amount"),exp=total("expenses","amount"),profit=rev-exp;
   const pending=arr("payments").filter(x=>x.status==="Pending"||x.status==="Overdue");
-  $("content").innerHTML=`<div class="grid">
+  $("pageContent").innerHTML=`<div class="grid">
     <div class="card span8 analysis">
       <div class="eyebrow">Creator Business Analyst</div>
       <h2>What do you want to know?</h2>
@@ -1013,7 +1042,7 @@ function runLocalAssistant(){
 
 function renderSettings(){
   const p=state.profile;
-  $("content").innerHTML=`<div class="grid">
+  $("pageContent").innerHTML=`<div class="grid">
     <div class="card span6">
       <div class="profile-card"><div class="avatar">${esc((p.name||"C").slice(0,1).toUpperCase())}</div><div><h3 style="margin:0">${esc(p.name||"Creator")}</h3><span class="muted">${esc(p.email||state.user?.email||"")}</span></div></div>
       <div class="divider"></div>
