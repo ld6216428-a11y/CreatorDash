@@ -757,7 +757,7 @@ function renderDashboard(){
       </div>
 
       <div class="card span4 analysis">
-        <h3>🧠 CreatorDash Intelligence</h3>
+        <h3>✦ CreatorDash Intelligence</h3>
         <p class="subtitle">A rule-based business readout from your actual records. Missing data is never replaced with invented numbers.</p>
         ${insights.slice(0,2).map(i=>`<div class="insight ${i.type}"><b>${esc(i.title)}</b><br><span class="muted">${esc(i.text)}</span></div>`).join("")}
         <button class="btn primary" style="margin-top:12px" onclick="navigate('Creator Analytics')">Open full analysis</button>
@@ -812,7 +812,7 @@ function renderAnalytics(){
   $("pageContent").innerHTML=`
     <div class="grid">
       <div class="card span12 analysis">
-        <h3>🧠 CreatorDash Intelligence</h3>
+        <h3>✦ CreatorDash Intelligence</h3>
         <p class="subtitle">This MVP analysis is rule-based. It reads CreatorDash records and does not invent missing information. A future AI API can turn this data into a richer conversational analyst.</p>
         <div class="formgrid">
           <div class="field"><label>Report cycle</label><select onchange="setCycle(this.value)">
